@@ -11,7 +11,13 @@ namespace gl
 		/*
 		* debug callback from opengl
 		*/
-		void openglDebugCallback (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, void* userParam)
+		void openglDebugCallback (GLenum source,
+                              GLenum type,
+                              GLuint id,
+                              GLenum severity,
+                              GLsizei length,
+                              const GLchar* message,
+                              const void* userParam)
 		{
 			std::string	err;
 

@@ -2,7 +2,7 @@
 #include "structures/callback.h"
 #include "structures/callbackset.h"
 
-#include "../tests.h"
+#include "../../test/tests.h"
 
 class CallbackMock : public Utils::Callback
 {

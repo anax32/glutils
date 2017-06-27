@@ -3,7 +3,7 @@
 #include "gl/texture.h"
 #include <fstream>
 
-#include "../tests.h"
+#include "../../test/tests.h"
 
 void create_test ()
 {

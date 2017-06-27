@@ -1,7 +1,7 @@
 #include "gl/defs.h"
 #include "gl/context.h"
 
-#include "../tests.h"
+#include "../../test/tests.h"
 
 void create_test ()
 {

@@ -2,6 +2,8 @@
  * data buffers
  */
 
+#include <vector>
+
 namespace gl
 {
 	namespace buffer

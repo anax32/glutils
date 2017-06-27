@@ -1,7 +1,7 @@
 #include "structures/parameterset.h"
 #include "structures/callback.h"
 
-#include "../tests.h"
+#include "../../test/tests.h"
 
 class CallbackMock : public Utils::Callback
 {

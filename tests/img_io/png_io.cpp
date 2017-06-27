@@ -1,9 +1,10 @@
 #include <sstream>
 #include <cassert>
+#include <cstring>
 
 #include "img_io/png_io.h"
 
-#include "../tests.h"
+#include "../../test/tests.h"
 
 void write_to_stream_test ()
 {
