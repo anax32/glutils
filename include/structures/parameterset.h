@@ -638,7 +638,9 @@ public:
    */
   void set (const Param& name, T* newValue)
   {
-    if ((auto pl = m.find (name)) != m.end ())
+    ConstParamList pl;
+    
+    if ((pl = m.find (name)) != m.end ())
     {
       if (pl->second == newValue)
       {
@@ -664,7 +666,9 @@ public:
    */
   void remove (const Param& name)
   {
-    if ((auto pl = m.find (name)) != m.end ())
+    ConstParamList pl;
+
+    if ((pl = m.find (name)) != m.end ())
     {
 #ifdef _DEBUG
       std::endl << "DEL " << pl->first << std::endl;
@@ -706,9 +710,10 @@ public:
    */
   void clear ()
   {
+    ConstParamList pl;
   //  Note::notemsg ("CLR %08x", reinterpret_cast<unsigned int>(this));
 
-    while ((auto pl=begin ()) !=end ())
+    while ((pl=begin ()) !=end ())
     {
       remove (pl->first);
       pl=begin ();
