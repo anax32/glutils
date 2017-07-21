@@ -17,7 +17,7 @@ namespace gl
                               GLenum severity,
                               GLsizei length,
                               const GLchar* message,
-                              const void* userParam)
+                              void* userParam)
     {
       std::string  err;
 
