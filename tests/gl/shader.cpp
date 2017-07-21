@@ -3,7 +3,7 @@
 #include "gl/shader.h"
 #include <fstream>
 
-#include "../../test/tests.h"
+#include "maketest.h"
 
 void shader_type_enum_test ()
 {

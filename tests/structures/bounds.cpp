@@ -1,7 +1,7 @@
 #include "structures/parameterset.h"
 #include "structures/bounds.h"
 
-#include "../../test/tests.h"
+#include "maketest.h"
 
 void bounds_create_test ()
 {

@@ -3,7 +3,7 @@
 #include "gl/buffer.h"
 #include <fstream>
 
-#include "../../test/tests.h"
+#include "maketest.h"
 
 void create_test ()
 {

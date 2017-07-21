@@ -4,7 +4,7 @@
 
 #include "img_io/png_io.h"
 
-#include "../../test/tests.h"
+#include "maketest.h"
 
 void write_to_stream_test ()
 {

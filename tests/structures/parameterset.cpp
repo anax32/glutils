@@ -1,7 +1,7 @@
 //#include "patterns/persistable.h"
 #include "structures/parameterset.h"
 
-#include "../../test/tests.h"
+#include "maketest.h"
 
 void parameterset_create_test ()
 {
