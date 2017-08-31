@@ -1,3 +1,6 @@
+#include <functional>
+#include <vector>
+
 /*
 * texture management
 */
@@ -409,5 +412,42 @@ namespace gl
 
       return true;
     }
+	template<typename T>
+	bool set_content(const unsigned int tex_id,
+					 const std::vector<T>& values,
+					 const size2d size,
+					 const unsigned int format = GL_LUMINANCE,
+					 const unsigned int internal_format = GL_LUMINANCE,
+					 GLenum target = GL_TEXTURE_2D)
+	{
+		glBindTexture(target, tex_id);
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+		switch (target)
+		{
+			case GL_TEXTURE_2D:
+			{
+				glTexImage2D(target,
+					0,
+					internal_format,
+					std::get<0> (size),
+					std::get<1> (size),
+					0,
+					format,
+					GL_FLOAT,
+					values.data());
+				break;
+			}
+			default:
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
   }
 }
