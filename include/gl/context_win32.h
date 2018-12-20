@@ -5,6 +5,46 @@ namespace gl
   */
   namespace context
   {
+	LRESULT CALLBACK dummy_window_proc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+	{
+		return DefWindowProc(hWnd, message, wParam, lParam);
+	}
+
+	HWND dummy_window()
+	{
+		WNDCLASSEX wcex;
+		auto dummy_class_name = L"dummy_class\0";
+
+		wcex.cbSize = sizeof(WNDCLASSEX);
+		wcex.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+		wcex.lpfnWndProc = dummy_window_proc;
+		wcex.cbClsExtra = 0;
+		wcex.cbWndExtra = 0;
+		wcex.hInstance = GetModuleHandle (NULL);
+		wcex.hIcon = NULL;
+		wcex.hCursor = NULL;
+		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+		wcex.lpszMenuName = NULL;
+		wcex.lpszClassName = dummy_class_name;
+		wcex.hIconSm = NULL;
+
+		if (!RegisterClassEx(&wcex))
+		{
+			return (HWND)INVALID_HANDLE_VALUE;
+		}
+
+		return CreateWindow(
+			dummy_class_name,
+			NULL,
+			WS_OVERLAPPED,
+			CW_USEDEFAULT, CW_USEDEFAULT,
+			CW_USEDEFAULT, CW_USEDEFAULT,
+			NULL,
+			NULL,
+			GetModuleHandle(NULL),
+			NULL);
+	}
+
     bool create (HWND hwnd)
     {
       PIXELFORMATDESCRIPTOR pfd =
@@ -31,12 +71,12 @@ namespace gl
       HDC    hDC;
       HGLRC  htglrc, hglrc;  // temp rc, actual rc
 
-      if (hwnd == NULL)
+      if (hwnd == nullptr)
       {
-        hwnd = window::create ();
+        hwnd = dummy_window ();
       }
 
-      if ((hDC = GetDC (hwnd)) == NULL)
+      if ((hDC = GetDC (hwnd)) == nullptr)
       {
         window::clean (hwnd);
         logr::err ("Could not get initial window device context");
@@ -46,7 +86,7 @@ namespace gl
       npfd = ChoosePixelFormat (hDC, &pfd);
       SetPixelFormat (hDC, npfd, &pfd);
 
-      if ((htglrc = wglCreateContext (hDC)) == NULL)
+      if ((htglrc = wglCreateContext (hDC)) == nullptr)
       {
         window::clean (hwnd);
         logr::err ("Could not create gl context");
