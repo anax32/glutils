@@ -103,9 +103,25 @@ namespace gl
 
     typedef std::function <bool(const int, const int, const int, const unsigned char*)>    write_fn_t;
 
+    bool default_write_fn(const int w, const int h, const int d, const unsigned char* img_buf)
+    {
+      auto N = w*h*d;
+      auto mn = *std::min_element(img_buf, img_buf + N);
+      auto mx = *std::max_element(img_buf, img_buf + N);
+
+      fprintf(stdout, "received image: (%ix%ix%i) %i -> %i", w, h, d, mn, mx);
+
+      return true;
+    }
+
     /*
-     * write a texture object using the png_io namespace
+     * write a texture object to a callback function
      * NB: this is only valid for GL_TEXTURE_2D targets at the moment
+     * write_fn signature should be (const int, const int, const int, const unsigned char*)->bool
+     * (as given above in the write_fn_t type)
+     * The texture data will be extracted, converted to four channel byte-encoded RGBA and
+     * passed to the write_fn callback.
+     * Memory location used to store the image data will be deleted after write_fn returns.
      */
     void write (const unsigned int texid, write_fn_t write_fn)
     {
@@ -132,7 +148,7 @@ namespace gl
       glGetTexImage (GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, img_f);
 
       // convert the float to bytes
-      std::transform (img_f + (0), img_f + (w*h * 4),
+      std::transform (img_f + (0), img_f + (w*h*4),
                       img_ub, [](const float f){return static_cast<unsigned int>(f*255.0f);});
 
       if (write_fn (w, h, 4, img_ub) == false)
