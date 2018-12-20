@@ -13,7 +13,7 @@ namespace gl
 	  HWND dummy_window()
 	  {
 		  WNDCLASSEX wcex;
-		  auto dummy_class_name = L"dummy_class\0";
+		  auto dummy_class_name = "dummy_class\0";
 
 		  wcex.cbSize = sizeof(WNDCLASSEX);
 		  wcex.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -45,7 +45,7 @@ namespace gl
 			  NULL);
 	  }
 
-    bool create (HWND hwnd)
+    bool create (HWND hwnd = nullptr)
     {
       PIXELFORMATDESCRIPTOR pfd =
       {
@@ -78,8 +78,8 @@ namespace gl
 
       if ((hDC = GetDC (hwnd)) == nullptr)
       {
-        window::clean (hwnd);
-        logr::err ("Could not get initial window device context");
+        //window::clean (hwnd);
+        //logr::err ("Could not get initial window device context");
         return false;
       }
 
@@ -88,16 +88,16 @@ namespace gl
 
       if ((htglrc = wglCreateContext (hDC)) == nullptr)
       {
-        window::clean (hwnd);
-        logr::err ("Could not create gl context");
+        //window::clean (hwnd);
+        //logr::err ("Could not create gl context");
         return false;
       }
 
       if (wglMakeCurrent (hDC, htglrc) == FALSE)
       {
         wglDeleteContext (htglrc);
-        window::clean (hwnd);
-        logr::err ("Could not make gl context current on device");
+        //window::clean (hwnd);
+        //logr::err ("Could not make gl context current on device");
         return false;
       }
 
@@ -154,13 +154,19 @@ namespace gl
     /*
     * clean a context on a windows system.
     * + get the current context
-    * + make a null context current on hwnd
+    * + make a null context current
     * + delete the obtained context
     */
-    void clean (HWND hwnd)
+    void clean ()
     {
       HGLRC hglrc = wglGetCurrentContext ();
-      wglMakeCurrent (GetDC (hwnd), NULL);
+
+      // If hglrc is NULL, the function makes the calling thread's current
+      // rendering context no longer current, and releases the device context
+      // that is used by the rendering context. In this case, hdc is ignored.
+      // https://docs.microsoft.com/en-gb/windows/desktop/api/wingdi/nf-wingdi-wglmakecurrent
+      wglMakeCurrent (NULL, NULL);
+
       wglDeleteContext (hglrc);
     }
   };

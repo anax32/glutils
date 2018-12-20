@@ -2,8 +2,8 @@
 #define GLEW_STATIC
 
 #ifdef _WIN32
-#include "include\GL\glew.h"
-#include "include\GL\wglew.h"
+#include "GL\glew.h"
+#include "GL\wglew.h"
 #include <gl/GL.h>
 #elif __linux__
 #include <GL/glew.h>

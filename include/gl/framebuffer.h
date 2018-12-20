@@ -75,7 +75,7 @@ namespace gl
     void attach_texture (const unsigned int *targets, const unsigned int targetCount, const unsigned int depid = 0)
     {
       // attach the targets
-      for (auto i=0; i<targetCount; i++)
+      for (auto i=0u; i<targetCount; i++)
       {
         glFramebufferTexture2D (GL_FRAMEBUFFER,
                                 GL_COLOR_ATTACHMENT0+i,
