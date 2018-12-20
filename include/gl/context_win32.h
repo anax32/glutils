@@ -5,45 +5,45 @@ namespace gl
   */
   namespace context
   {
-	LRESULT CALLBACK dummy_window_proc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-	{
-		return DefWindowProc(hWnd, message, wParam, lParam);
-	}
+	  LRESULT CALLBACK dummy_window_proc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+	  {
+    	return DefWindowProc(hWnd, message, wParam, lParam);
+	  }
 
-	HWND dummy_window()
-	{
-		WNDCLASSEX wcex;
-		auto dummy_class_name = L"dummy_class\0";
+	  HWND dummy_window()
+	  {
+		  WNDCLASSEX wcex;
+		  auto dummy_class_name = L"dummy_class\0";
 
-		wcex.cbSize = sizeof(WNDCLASSEX);
-		wcex.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-		wcex.lpfnWndProc = dummy_window_proc;
-		wcex.cbClsExtra = 0;
-		wcex.cbWndExtra = 0;
-		wcex.hInstance = GetModuleHandle (NULL);
-		wcex.hIcon = NULL;
-		wcex.hCursor = NULL;
-		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-		wcex.lpszMenuName = NULL;
-		wcex.lpszClassName = dummy_class_name;
-		wcex.hIconSm = NULL;
+		  wcex.cbSize = sizeof(WNDCLASSEX);
+		  wcex.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+		  wcex.lpfnWndProc = dummy_window_proc;
+		  wcex.cbClsExtra = 0;
+		  wcex.cbWndExtra = 0;
+		  wcex.hInstance = GetModuleHandle (NULL);
+		  wcex.hIcon = NULL;
+		  wcex.hCursor = NULL;
+		  wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+		  wcex.lpszMenuName = NULL;
+		  wcex.lpszClassName = dummy_class_name;
+		  wcex.hIconSm = NULL;
 
-		if (!RegisterClassEx(&wcex))
-		{
-			return (HWND)INVALID_HANDLE_VALUE;
-		}
+		  if (!RegisterClassEx(&wcex))
+		  {
+			  return (HWND)INVALID_HANDLE_VALUE;
+		  }
 
-		return CreateWindow(
-			dummy_class_name,
-			NULL,
-			WS_OVERLAPPED,
-			CW_USEDEFAULT, CW_USEDEFAULT,
-			CW_USEDEFAULT, CW_USEDEFAULT,
-			NULL,
-			NULL,
-			GetModuleHandle(NULL),
-			NULL);
-	}
+		  return CreateWindow(
+			  dummy_class_name,
+			  NULL,
+			  WS_OVERLAPPED,
+			  CW_USEDEFAULT, CW_USEDEFAULT,
+			  CW_USEDEFAULT, CW_USEDEFAULT,
+			  NULL,
+			  NULL,
+			  GetModuleHandle(NULL),
+			  NULL);
+	  }
 
     bool create (HWND hwnd)
     {
