@@ -45,23 +45,28 @@ namespace gl
   */
   typedef std::map<std::string, unsigned int, cmp_str>  resource_set_t;
 
+  using callback_t = std::function<void(const resource_set_t&)>;
+  typedef std::map<std::string, callback_t, cmp_str> callback_set_t;
+
   /*
   * get a resource from a const map
   * NB: [] operator is not valid on const maps
   */
-  resource_set_t::value_type get_resource(const resource_set_t& res, const resource_set_t::key_type& name)
+  template<typename T>
+  typename T::value_type get_resource(const T& res, const typename T::key_type& name)
   {
-    resource_set_t::const_iterator it = res.find(name);
+    typename T::const_iterator it = res.find(name);
 
     if (std::distance(it, std::end(res)) == 0)
     {
-      return std::make_pair<resource_set_t::value_type::first_type, resource_set_t::value_type::second_type>("none", 0);
+      return std::make_pair<T::value_type::first_type, T::value_type::second_type>("none", 0);
     }
 
     return *it;
   }
   
-  bool has_resource (const resource_set_t& res, const resource_set_t::key_type& name)
+  template<typename T>
+  bool has_resource (const T& res, const typename T::key_type& name)
   {
     return (res.find (name) != res.end ());
   }

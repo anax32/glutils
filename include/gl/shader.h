@@ -413,6 +413,26 @@ namespace gl
       // return the number of bytes read from the file
       return rb;
     }
+
+    std::string read_source_file(const char *filename)
+    {
+        size_t len = 0;
+
+        read_file(filename, nullptr, len);
+
+        if (len == 0)
+        {
+            return std::string("");
+        }
+
+        char* buf = new char[len+1];
+        std::fill(buf, buf + len + 1, 0);
+        read_file(filename, buf, len);
+        std::string s(buf);
+        delete[] buf;
+        return s;
+    }
+
     /**
     * @returns true if the shader program linked correctly, false otherwise
     */

@@ -1,3 +1,5 @@
+#include <Windows.h>
+
 namespace gl
 {
   /*
@@ -5,12 +7,119 @@ namespace gl
   */
   namespace context
   {
-	  LRESULT CALLBACK dummy_window_proc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+	  LRESULT CALLBACK dummy_window_proc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	  {
-    	return DefWindowProc(hWnd, message, wParam, lParam);
+        if (message == WM_NCCREATE)
+        {
+            SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)((CREATESTRUCT*)lParam)->lpCreateParams);
+            return TRUE;
+        }
+
+        auto callbacks = reinterpret_cast<callback_set_t*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
+        if (callbacks != nullptr)
+        {
+            // if we have a handler, call it and return 0,
+            // otherwise fall through to DefWindowProc
+            switch (message)
+            {
+            case WM_CREATE:
+            {
+                if (gl::has_resource(*callbacks, "on_create") == true)
+                {
+                    auto p = resource_set_t({
+                        {"hwnd", reinterpret_cast<typename gl::resource_set_t::value_type::second_type>(hwnd)}
+                        });
+                    gl::get_resource(*callbacks, "on_create").second(p);
+                    return 0;
+                }
+                break;
+            }
+            case WM_SIZE:
+            {
+                if (gl::has_resource(*callbacks, "on_resize") == true)
+                {
+                    RECT r;
+                    GetWindowRect(hwnd, &r);
+                    auto p = resource_set_t({
+                        {"left", r.left},
+                        {"top",r.top},
+                        {"right",r.right},
+                        {"bottom",r.bottom}
+                    });
+                    gl::get_resource(*callbacks, "on_resize").second(p);
+                    return 0;
+                }
+                break;
+            }
+            case WM_TIMER:
+            {
+                if (gl::has_resource(*callbacks, "on_timer") == true)
+                {
+                    auto p = resource_set_t({
+                        {"timer-id", static_cast<typename gl::resource_set_t::value_type::second_type>(wParam)}
+                    });
+                    gl::get_resource(*callbacks, "on_timer").second(p);
+                    return 0;
+                }
+                break;
+            }
+            case WM_PAINT:
+            {
+                if (gl::has_resource(*callbacks, "on_paint") == true)
+                {
+                    RECT    rc;    // RECT structure  
+                    auto hdc = GetDC(hwnd);
+                    PAINTSTRUCT ps;
+
+                    // FIXME: only get the ps if get update rect is not empty
+                    GetUpdateRect(hwnd, &rc, FALSE);
+                    BeginPaint(hwnd, &ps);
+
+                    GetClientRect(hwnd, &rc);
+
+                    auto p = resource_set_t();
+                    gl::get_resource(*callbacks, "on_paint").second(p);
+
+                    SwapBuffers(hdc);
+                    ReleaseDC(hwnd, hdc);
+
+                    EndPaint(hwnd, &ps);
+
+                    return 0;
+                }
+                break;
+            }
+            case WM_KEYDOWN:
+            {
+                // param = static_cast<char>(wParam)
+                if (gl::has_resource(*callbacks, "on_keydown") == true)
+                {
+                    auto p = resource_set_t({
+                        {"keycode", static_cast<typename gl::resource_set_t::value_type::second_type>(wParam)},
+                    });
+                    gl::get_resource(*callbacks, "on_keydown").second(p);
+                    return 0;
+                }
+                break;
+            }
+            case WM_DESTROY:
+            {
+                if (gl::has_resource(*callbacks, "on_destroy") == true)
+                {
+                    auto p = resource_set_t();
+                    gl::get_resource(*callbacks, "on_destroy").second(p);
+                    return 0;
+                }
+                break;
+            }
+            }
+        }
+
+        return DefWindowProc(hwnd, message, wParam, lParam);
 	  }
 
-	  HWND dummy_window()
+	  HWND dummy_window(const callback_set_t* callback_ptr = nullptr)
 	  {
 		  WNDCLASSEX wcex;
 		  auto dummy_class_name = "dummy_class\0";
@@ -19,7 +128,7 @@ namespace gl
 		  wcex.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 		  wcex.lpfnWndProc = dummy_window_proc;
 		  wcex.cbClsExtra = 0;
-		  wcex.cbWndExtra = 0;
+		  wcex.cbWndExtra = sizeof(callback_set_t*);
 		  wcex.hInstance = GetModuleHandle (NULL);
 		  wcex.hIcon = NULL;
 		  wcex.hCursor = NULL;
@@ -36,16 +145,16 @@ namespace gl
 		  return CreateWindow(
 			  dummy_class_name,
 			  NULL,
-			  WS_OVERLAPPED,
+			  WS_OVERLAPPEDWINDOW,
 			  CW_USEDEFAULT, CW_USEDEFAULT,
 			  CW_USEDEFAULT, CW_USEDEFAULT,
 			  NULL,
 			  NULL,
 			  GetModuleHandle(NULL),
-			  NULL);
+        (LPVOID)(callback_ptr));
 	  }
 
-    bool create (HWND hwnd = nullptr)
+    bool create (const callback_set_t* callbacks = nullptr, HWND hwnd = nullptr)
     {
       PIXELFORMATDESCRIPTOR pfd =
       {
@@ -73,7 +182,7 @@ namespace gl
 
       if (hwnd == nullptr)
       {
-        hwnd = dummy_window ();
+        hwnd = dummy_window (callbacks);
       }
 
       if ((hDC = GetDC (hwnd)) == nullptr)
@@ -168,6 +277,56 @@ namespace gl
       wglMakeCurrent (NULL, NULL);
 
       wglDeleteContext (hglrc);
+    }
+
+    void fullscreen(HWND hwnd)
+    {
+        auto hmon = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+        MONITORINFO mi = { sizeof(mi) };
+        if (!GetMonitorInfo(hmon, &mi))
+            return;
+
+        SetWindowLong(
+            hwnd,
+            GWL_STYLE,
+            WS_POPUP | WS_VISIBLE);
+
+        SetWindowPos(
+            hwnd,
+            HWND_TOPMOST,
+            mi.rcMonitor.left,
+            mi.rcMonitor.top,
+            mi.rcMonitor.right - mi.rcMonitor.left,
+            mi.rcMonitor.bottom - mi.rcMonitor.top,
+            SWP_SHOWWINDOW);
+    }
+    void windowed(HWND hwnd, RECT size)
+    {
+        SetWindowLong(
+            hwnd,
+            GWL_STYLE,
+            WS_OVERLAPPEDWINDOW
+        );
+
+        SetWindowPos(
+            hwnd,
+            HWND_DESKTOP,
+            size.left,
+            size.top,
+            size.right - size.left,
+            size.bottom - size.top,
+            SWP_SHOWWINDOW
+        );
+    }
+    void windowed(HWND hwnd)
+    {
+        windowed(
+            hwnd,
+            { CW_USEDEFAULT,
+              CW_USEDEFAULT,
+              CW_USEDEFAULT,
+              CW_USEDEFAULT }
+        );
     }
   };
 }
