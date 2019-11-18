@@ -361,7 +361,7 @@ namespace gl
       return (parameter (GL_TEXTURE_MIN_FILTER, target) == GL_LINEAR_MIPMAP_LINEAR);
     }
     bool set_content (const unsigned int tex_id,
-                      const char *image,
+                      const unsigned char *image,
                       const unsigned int w,
                       const unsigned int h,
                       const unsigned int format = GL_RGBA,
