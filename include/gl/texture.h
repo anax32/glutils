@@ -101,7 +101,8 @@ namespace gl
       return (glIsTexture (tex_id) == GL_TRUE);
     }
 
-    typedef std::function <bool(const int, const int, const int, const unsigned char*)>    write_fn_t;
+    typedef std::function <bool(const int, const int, const int, const unsigned char*)>    write_fn_ub_t;
+    typedef std::function <bool(const int, const int, const int, const float*)>    write_fn_float_t;
 
     bool default_write_fn(const int w, const int h, const int d, const unsigned char* img_buf)
     {
@@ -123,7 +124,7 @@ namespace gl
      * passed to the write_fn callback.
      * Memory location used to store the image data will be deleted after write_fn returns.
      */
-    void write (const unsigned int texid, write_fn_t write_fn)
+    void write (const unsigned int texid, write_fn_ub_t write_fn)
     {
       int    w, h;
 
@@ -158,6 +159,61 @@ namespace gl
 
       // cleanup
       delete[] img_ub;
+      delete[] img_f;
+    }
+
+    /*
+     * write a texture object to a callback function
+     * NB: this is only valid for GL_TEXTURE_2D targets at the moment
+     * write_fn signature should be (const int, const int, const int, const unsigned char*)->bool
+     * (as given above in the write_fn_t type)
+     * The texture data will be extracted, converted to four channel byte-encoded RGBA and
+     * passed to the write_fn callback.
+     * Memory location used to store the image data will be deleted after write_fn returns.
+     */
+    void write (const unsigned int texid, write_fn_float_t write_fn, const int format = GL_RGBA)
+    {
+      int    w, h, d;
+
+      glGetError ();
+
+      glBindTexture (GL_TEXTURE_2D, texid);
+      glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+      glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+
+      if (glGetError() != GL_NONE)
+      {
+        return;
+      }
+      else if ((w == 0) || (h == 0))
+      {
+        return;
+      }
+
+      switch (format)
+      {
+        case GL_RGB: d = 3; break;
+        case GL_RGBA: d = 4; break;
+        case GL_LUMINANCE:
+        case GL_R32F:
+        default:
+          d = 1;
+          break;
+      }
+
+      auto img_f = new float[w*h*d];
+
+      glGetTexImage (GL_TEXTURE_2D, 0, format, GL_FLOAT, img_f);
+
+      if (write_fn (w, h, d, img_f) == false)
+      {
+        std::cerr << "ERR: Could not output texture '"
+                  << texid << "'"
+                  << " (" << w << ", " << h << ")"
+                  << std::endl;
+      }
+
+      // cleanup
       delete[] img_f;
     }
     /*
